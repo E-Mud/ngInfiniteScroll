@@ -51,7 +51,7 @@ mod.directive('infiniteScroll', [
         };
         handler = function() {
           var containerBottom, containerTop, containerTopOffset, elementBottom, elementTop, remaining, shouldScroll;
-          if (scope.$eval(infiniteScrollReverse)) {
+          if (scope.$eval(attrs.infiniteScrollReverse)) {
             if (container === windowElement) {
               containerTop = pageYOffset(container[0].document.documentElement);
               elementTop = offsetTop(elem);
