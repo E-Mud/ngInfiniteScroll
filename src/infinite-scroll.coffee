@@ -47,21 +47,36 @@ mod.directive 'infiniteScroll', ['$rootScope', '$window', '$interval', 'THROTTLE
     # with a boolean that is set to true when the function is
     # called in order to throttle the function call.
     handler = ->
-      if container == windowElement
-        containerBottom = height(container) + pageYOffset(container[0].document.documentElement)
-        elementBottom = offsetTop(elem) + height(elem)
+      if scope.$eval(attrs.infiniteScrollReverse)
+            if container == windowElement
+              containerTop = pageYOffset(container[0].document.documentElement)
+              elementTop = offsetTop(elem)
+            else
+              containerTop = 0
+              containerTopOffset = 0
+              if offsetTop(container) != undefined
+                containerTopOffset = offsetTop(container)
+              elementTop = offsetTop(elem) - containerTopOffset
+
+            remaining = containerTop - elementTop
+            shouldScroll = remaining <= height(container) * scrollDistance + 1
       else
-        containerBottom = height(container)
-        containerTopOffset = 0
-        if offsetTop(container) != undefined
-          containerTopOffset = offsetTop(container)
-        elementBottom = offsetTop(elem) - containerTopOffset + height(elem)
+          if container == windowElement
+            containerBottom = height(container) + pageYOffset(container[0].document.documentElement)
+            elementBottom = offsetTop(elem) + height(elem)
+          else
+            containerBottom = height(container)
+            containerTopOffset = 0
+            if offsetTop(container) != undefined
+              containerTopOffset = offsetTop(container)
+            elementBottom = offsetTop(elem) - containerTopOffset + height(elem)
 
-      if(useDocumentBottom)
-        elementBottom = height((elem[0].ownerDocument || elem[0].document).documentElement)
+          if(useDocumentBottom)
+            elementBottom = height((elem[0].ownerDocument || elem[0].document).documentElement)
 
-      remaining = elementBottom - containerBottom
-      shouldScroll = remaining <= height(container) * scrollDistance + 1
+          remaining = elementBottom - containerBottom
+          shouldScroll = remaining <= height(container) * scrollDistance + 1
+
 
       if shouldScroll
         checkWhenEnabled = true
@@ -108,7 +123,7 @@ mod.directive 'infiniteScroll', ['$rootScope', '$window', '$interval', 'THROTTLE
       if unregisterEventListener?
         unregisterEventListener()
         unregisterEventListener = null
-      if checkInterval 
+      if checkInterval
         $interval.cancel checkInterval
 
     # infinite-scroll-distance specifies how close to the bottom of the page

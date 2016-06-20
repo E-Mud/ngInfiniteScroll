@@ -1,4 +1,4 @@
-/* ng-infinite-scroll - v1.2.1 - 2016-02-09 */
+/* ng-infinite-scroll - v1.2.1 - 2016-06-20 */
 var mod;
 
 mod = angular.module('infinite-scroll', []);
@@ -50,23 +50,39 @@ mod.directive('infiniteScroll', [
           }
         };
         handler = function() {
-          var containerBottom, containerTopOffset, elementBottom, remaining, shouldScroll;
-          if (container === windowElement) {
-            containerBottom = height(container) + pageYOffset(container[0].document.documentElement);
-            elementBottom = offsetTop(elem) + height(elem);
-          } else {
-            containerBottom = height(container);
-            containerTopOffset = 0;
-            if (offsetTop(container) !== void 0) {
-              containerTopOffset = offsetTop(container);
+          var containerBottom, containerTop, containerTopOffset, elementBottom, elementTop, remaining, shouldScroll;
+          if (scope.$eval(infiniteScrollReverse)) {
+            if (container === windowElement) {
+              containerTop = pageYOffset(container[0].document.documentElement);
+              elementTop = offsetTop(elem);
+            } else {
+              containerTop = 0;
+              containerTopOffset = 0;
+              if (offsetTop(container) !== void 0) {
+                containerTopOffset = offsetTop(container);
+              }
+              elementTop = offsetTop(elem) - containerTopOffset;
             }
-            elementBottom = offsetTop(elem) - containerTopOffset + height(elem);
+            remaining = containerTop - elementTop;
+            shouldScroll = remaining <= height(container) * scrollDistance + 1;
+          } else {
+            if (container === windowElement) {
+              containerBottom = height(container) + pageYOffset(container[0].document.documentElement);
+              elementBottom = offsetTop(elem) + height(elem);
+            } else {
+              containerBottom = height(container);
+              containerTopOffset = 0;
+              if (offsetTop(container) !== void 0) {
+                containerTopOffset = offsetTop(container);
+              }
+              elementBottom = offsetTop(elem) - containerTopOffset + height(elem);
+            }
+            if (useDocumentBottom) {
+              elementBottom = height((elem[0].ownerDocument || elem[0].document).documentElement);
+            }
+            remaining = elementBottom - containerBottom;
+            shouldScroll = remaining <= height(container) * scrollDistance + 1;
           }
-          if (useDocumentBottom) {
-            elementBottom = height((elem[0].ownerDocument || elem[0].document).documentElement);
-          }
-          remaining = elementBottom - containerBottom;
-          shouldScroll = remaining <= height(container) * scrollDistance + 1;
           if (shouldScroll) {
             checkWhenEnabled = true;
             if (scrollEnabled) {
@@ -116,7 +132,10 @@ mod.directive('infiniteScroll', [
           container.unbind('scroll', handler);
           if (unregisterEventListener != null) {
             unregisterEventListener();
-            return unregisterEventListener = null;
+            unregisterEventListener = null;
+          }
+          if (checkInterval) {
+            return $interval.cancel(checkInterval);
           }
         });
         handleInfiniteScrollDistance = function(v) {
